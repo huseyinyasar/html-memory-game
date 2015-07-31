@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Oyun</title>
+		<style type="text/css">
+			.board{
+ 			    width: 75%;
+			    margin-left: auto;
+			    margin-right: auto;
+			}
+			.card{
+
+			}
+			.cardOpen{
+				float:left;
+
+				width: 64px;
+				height: 64px;
+
+				color: #fff;
+  				background-color: #5bc0de;
+    			border-color: #46b8da;
+
+				display: inline-block;
+
+				margin: 8px 8px 8px 8px;
+				font-size: 48px;
+				text-align: center;
+				vertical-align: top;
+				border: 0px solid transparent;
+				border-radius: 8px;
+
+
+				-webkit-transform: perspective(600px) rotateY(0deg);
+				/*-webkit-backface-visibility: hidden;*/
+				-webkit-transition: -webkit-transform .5s linear 0s;
+				transform: perspective(600px) rotateY(0deg);
+				/*backface-visibility: hidde n;*/
+				transition: transform .5s linear 0s;
+
+			}
+			.cardClosed{
+				float: left;
+
+				width: 64px;
+				height: 64px;
+
+				color: #fff;
+ 				background-color: #337ab7;
+ 				border-color: #2e6da4;
+
+ 				display: inline-block;
+
+				margin: 8px 8px 8px 8px;
+				font-size: 48px;
+				text-align: center;
+				vertical-align: top;
+				border: 0px solid transparent;
+				border-radius: 8px;
+
+
+				-webkit-transform: perspective(600px) rotateY(180deg);
+				/*-webkit-backface-visibility: hidden;*/
+				-webkit-transition: -webkit-transform .5s linear 0s;
+				transform: perspective(600px) rotateY(180deg);
+				/*backface-visibility: hidden;*/
+				transition: transform .5s linear 0s;
+			}
+		</style>
+		<script type="text/javascript">
+
+			var BOARDWIDTH=4;
+			var BOARDHEIGHT=4;
+			var BOARDSIZE=BOARDHEIGHT * BOARDWIDTH;
+
+			var WORDCOUNT=1;
+
+			var board=[];
+			var openCards=[];
+			var words=[];
+			var gameReady = false;
+
+			function Card (cardId, letter, state) {
+				this.cardId = cardId;
+				this.letter = letter;
+				this.state = state;
+			}
+
+			function initBoardRandomly() {
+				for(var i = 0; i < BOARDSIZE; i++)
+					board.push(new Card(i, randomLetter(),"closed"));
+			}
+
+			function initBoard(){
+				letters=getLettersOfWords(words);
+				initBoardRandomly();
+				replacedIndexes=[];
+
+				for(var i = 0; i<letters.length; i++){
+					var index = Math.floor(Math.random()*board.length);
+					if(!contains(replacedIndexes, index)){
+						board[index] = new Card(index, letters[i], "closed"); //remove gerekli mi?
+						replacedIndexes.push(index);
+					}
+					else i--;
+				}
+			}
+
+			function getLettersOfWords(words){
+				var letters=[];
+				for(var i = 0; i<words.length; i++){
+					var word = words[i];
+					for(var j=0; j<word.length; j++){
+						letters.push(word.charAt(j));
+					}
+				}
+				return letters;
+			}
+
+			function onCardClick(cardIndex){
+				if(gameReady=="true"){
+					flipCard(cardIndex);
+					if(board[cardIndex].state=="open"){
+						openCards.push(board[cardIndex]);
+					}
+					else openCards.pop(board[cardIndex]);
+				}
+				if(findInWords()==false){
+					for(var i=0; i<openCards.length; i++){
+						//flipCard(openCards[i].cardId);
+						//openCards=[]; //garbage?
+					}
+				}
+			}
+			
+			function flipCard(cardIndex) {
+				var card = board[cardIndex];
+				if(card.state=="closed"){
+					card.state="open";
+					document.getElementById("id_crd" + cardIndex).setAttribute("class","cardOpen");
+					document.getElementById("id_crd" + cardIndex).innerHTML=card.letter;
+				}
+				else
+				{
+					card.state="closed";
+					document.getElementById("id_crd" + cardIndex).setAttribute("class","cardClosed");
+					document.getElementById("id_crd" + cardIndex).innerHTML="";
+				}
+			}
+
+			function flipAll(){
+				for(var i=0; i<BOARDSIZE; i++){
+					flipCard(i);
+				}
+			}
+
+			function findInWords(){
+				return false;
+			}
+
+			function randomLetter() {
+    			var letters = "ABCDEFGHIJKLMNOPQURSTUVWXYZ";
+    			return letters.charAt( Math.floor(Math.random()*letters.length) );
+			}
+
+			function randomLetterFrom(letters){
+				return letters.charAt( Math.floor(Math.random()*letters.length) );
+			}
+
+			function randomWord(){
+				var words = ['uygulama','tatbik','talep','dikkat','temyiz','cazibe','tekrar','savunma','top','elma','ip','bulut'];
+				return words[Math.floor(Math.random()*words.length)];
+			}
+
+			function randomWordFromWords(words){
+				return words[Math.floor(Math.random()*words.length)];
+			}
+
+			function initWords(){
+				var i;
+				for(i = 0; i < WORDCOUNT; i++){
+					var word = randomWord();
+					if(!contains(words, word)){
+						words.push(word);
+					}
+					else i--;
+				}
+				return words;
+			}
+
+			function contains(array, obj) {
+			    for (var i = 0; i < array.length; i++) {
+			        if (array[i] === obj) {
+			            return true;
+			        }
+			    }
+			    return false;
+			}
+
+			function emptyArray(array){
+				while(array.length > 0) {
+					array.pop();
+				}
+			}
+
+			function renderBoard(){
+				var output = '';
+				for(var i = 0; i < BOARDSIZE; i++){
+					var card = board[i];
+					output += '<div id="id_crd'+ i +'" ';
+					if (card.state == "open")
+						output += 'class="cardOpen" onclick="onCardClick(' + i + ')">' + card.letter +'</div>';
+					else
+						output += 'class="cardClosed" onclick="onCardClick(' + i + ')"> </div>';
+				}
+				
+				document.getElementById("id_brd0").innerHTML=output;
+			}
+
+			function renderWords () {
+				var output = '';
+				for(var i=0; i<words.length; i++){
+					
+					output += words[i] + ',';
+				}
+				document.getElementById("id_wrd0").innerHTML=output;
+			}
+
+			function renderLetters () {
+				var output = '';
+				var letters = getLettersOfWords(words);
+				for(var i=0; i<letters.length; i++){
+					
+					output += letters[i] + ', ';
+				}
+				document.getElementById("id_wrd1").innerHTML=output;
+			}
+
+			function main(){
+
+			}
+
+		</script>
+
+	</head>
+	<body>
+
+		<div class="panel">
+			<div id="id_brd0" class="board"></div>
+		</div>
+		<div class="panel">
+			<div id="id_wrd0" class="board"></div>
+			<div id="id_wrd1" class="board"></div>
+		</div>
+		<script>
+			initWords(); 
+			initBoard(); 
+			renderBoard();
+			renderWords(); 
+			renderLetters();
+			setTimeout(function () {flipAll();}, 0);
+			setTimeout(function () {flipAll(); gameReady="true"; main();}, 3000);
+
+		</script>
+		
+	</body>
+</html>
